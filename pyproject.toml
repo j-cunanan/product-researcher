@@ -1,10 +1,9 @@
 [project]
-name = "company-researcher"
+name = "product-researcher"
 version = "0.0.1"
-description = "Researcher agent that searches information about a company and returns it in a structured format."
+description = "Researcher agent that searches information about a product and returns it in a structured format."
 authors = [
-    { name = "Vadym Barda" },
-    { name = "Lance Martin" }
+    { name = "Jayson Cunanan" },
 ]
 readme = "README.md"
 license = { text = "MIT" }

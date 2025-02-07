@@ -1,107 +1,63 @@
 from dataclasses import dataclass, field
-from typing import Any, Optional, Annotated
+from typing import Any, Optional, List, Annotated
 import operator
-
-
-DEFAULT_EXTRACTION_SCHEMA = {
-    "title": "CompanyInfo",
-    "description": "Basic information about a company",
-    "type": "object",
-    "properties": {
-        "company_name": {
-            "type": "string",
-            "description": "Official name of the company",
-        },
-        "founding_year": {
-            "type": "integer",
-            "description": "Year the company was founded",
-        },
-        "founder_names": {
-            "type": "array",
-            "items": {"type": "string"},
-            "description": "Names of the founding team members",
-        },
-        "product_description": {
-            "type": "string",
-            "description": "Brief description of the company's main product or service",
-        },
-        "funding_summary": {
-            "type": "string",
-            "description": "Summary of the company's funding history",
-        },
-    },
-    "required": ["company_name"],
-}
 
 
 @dataclass(kw_only=True)
 class InputState:
-    """Input state defines the interface between the graph and the user (external API)."""
+    """Input state defines the interface between the graph and the user."""
 
-    company: str
-    "Company to research provided by the user."
+    query: str
+    "Product search query provided by the user."
 
-    extraction_schema: dict[str, Any] = field(
-        default_factory=lambda: DEFAULT_EXTRACTION_SCHEMA
-    )
-    "The json schema defines the information the agent is tasked with filling out."
+    category: str
+    "Product category (e.g., electronics, outdoors, etc.)"
 
-    user_notes: Optional[dict[str, Any]] = field(default=None)
-    "Any notes from the user to start the research process."
+    price_range: str = field(default="Any")
+    "Desired price range for products"
 
 
 @dataclass(kw_only=True)
 class OverallState:
-    """Input state defines the interface between the graph and the user (external API)."""
+    """Overall state tracks all information throughout the research process."""
 
-    company: str
-    "Company to research provided by the user."
+    query: str
+    "Product search query provided by the user."
 
-    extraction_schema: dict[str, Any] = field(
-        default_factory=lambda: DEFAULT_EXTRACTION_SCHEMA
-    )
-    "The json schema defines the information the agent is tasked with filling out."
+    category: str
+    "Product category (e.g., electronics, outdoors, etc.)"
 
-    user_notes: str = field(default=None)
-    "Any notes from the user to start the research process."
+    price_range: str = field(default="Any")
+    "Desired price range for products"
 
-    search_queries: list[str] = field(default=None)
-    "List of generated search queries to find relevant information"
+    product_research: List[str] = field(default_factory=list)
+    "Product specifications and features from search results"
 
-    search_results: list[dict] = field(default=None)
-    "List of search results"
+    review_data: List[str] = field(default_factory=list)
+    "User reviews and feedback from various sources"
 
-    completed_notes: Annotated[list, operator.add] = field(default_factory=list)
-    "Notes from completed research related to the schema"
+    expert_opinions: List[str] = field(default_factory=list)
+    "Professional reviews and expert analysis"
 
-    info: dict[str, Any] = field(default=None)
-    """
-    A dictionary containing the extracted and processed information
-    based on the user's query and the graph's execution.
-    This is the primary output of the enrichment process.
-    """
+    comparison_table: str = field(default=None)
+    "Structured comparison table of top products"
 
-    is_satisfactory: bool = field(default=None)
-    "True if all required fields are well populated, False otherwise"
+    detailed_analysis: str = field(default=None)
+    "In-depth analysis of top product options"
 
-    reflection_steps_taken: int = field(default=0)
-    "Number of times the reflection node has been executed"
+    final_recommendation: str = field(default=None)
+    "Final product recommendations and buying advice"
 
 
 @dataclass(kw_only=True)
 class OutputState:
-    """The response object for the end user.
+    """The response object for the end user."""
 
-    This class defines the structure of the output that will be provided
-    to the user after the graph's execution is complete.
-    """
+    comparison_table: str
+    "Structured comparison table of top products"
 
-    info: dict[str, Any]
-    """
-    A dictionary containing the extracted and processed information
-    based on the user's query and the graph's execution.
-    This is the primary output of the enrichment process.
-    """
+    detailed_analysis: str
+    "In-depth analysis of top product options"
 
-    search_results: list[dict] = field(default=None)
-    "List of search results"
+    final_recommendation: str
+    "Final product recommendations and buying advice"

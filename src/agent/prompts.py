@@ -1,82 +1,81 @@
-EXTRACTION_PROMPT = """Your task is to take notes gathered from web research and extract them into the following schema.
+COMPARISON_PROMPT = """You are a professional product researcher. Create a structured comparison table for the following products based on research.
+Include:
+- Model name
+- Price
+- Rating (out of 5)
+- Key features (3-4 points)
+- Pros (3 points)
+- Cons (3 points)
 
-<schema>
-{info}
-</schema>
+Format as markdown table with | delimiters. Use this exact format:
+| Model | Price | Rating | Key Features | Pros | Cons |
+|-------|--------|---------|--------------|------|------|
 
-Here are all the notes from research:
-
-<web_research_notes>
-{notes}
-</web_research_notes>
+Note:
+- Include 3-5 top products
+- Be concise but informative
+- Focus on verified facts
+- Use consistent formatting
+- Separate list items with commas
 """
 
-QUERY_WRITER_PROMPT = """You are a search query generator tasked with creating targeted search queries to gather specific company information.
+ANALYSIS_PROMPT = """You are a professional product researcher analyzing top options in this category.
+Provide a detailed analysis using this structure:
 
-Here is the company you are researching: {company}
+## Overview
+[Market overview and key trends]
 
-Generate at most {max_search_queries} search queries that will help gather the following information:
+## Top Options Analysis
 
-<schema>
-{info}
-</schema>
+### [Product Name]
+- Price Range: [price]
+- Target User: [description]
+- Standout Features:
+  • [feature 1]
+  • [feature 2]
+  • [feature 3]
+- User Experience: [analysis] 
+- Build Quality: [analysis]
+- Value Assessment: [analysis]
 
-<user_notes>
-{user_notes}
-</user_notes>
+[Repeat for other top products]
 
-Your query should:
-1. Focus on finding factual, up-to-date company information
-2. Target official sources, news, and reliable business databases
-3. Prioritize finding information that matches the schema requirements
-4. Include the company name and relevant business terms
-5. Be specific enough to avoid irrelevant results
+## Key Decision Factors
+• [Factor 1]
+• [Factor 2]
+• [Factor 3]
 
-Create a focused query that will maximize the chances of finding schema-relevant information."""
+## Price-Performance Analysis
+[Value analysis across price points]
+"""
 
-INFO_PROMPT = """You are doing web research on a company, {company}. 
+RECOMENDATION_PROMPT = """You are a professional product researcher making final recommendations.
+Provide structured buying advice using this format:
 
-The following schema shows the type of information we're interested in:
+## Top Recommendation
+[Clear statement of top pick]
 
-<schema>
-{info}
-</schema>
+### Why This Choice
+• [Reason 1]
+• [Reason 2]
+• [Reason 3]
 
-You have just scraped website content. Your task is to take clear, organized notes about the company, focusing on topics relevant to our interests.
+### Best For
+[Ideal user/use case]
 
-<Website contents>
-{content}
-</Website contents>
+## Alternative Recommendations
 
-Here are any additional notes from the user:
-<user_notes>
-{user_notes}
-</user_notes>
+### Best Premium Option
+[Premium pick with justification]
 
-Please provide detailed research notes that:
-1. Are well-organized and easy to read
-2. Focus on topics mentioned in the schema
-3. Include specific facts, dates, and figures when available
-4. Maintain accuracy of the original content
-5. Note when important information appears to be missing or unclear
+### Best Budget Option
+[Budget pick with justification]
 
-Remember: Don't try to format the output to match the schema - just take clear notes that capture all relevant information."""
+### Best for [Specific Use]
+[Specialized pick with justification]
 
-REFLECTION_PROMPT = """You are a research analyst tasked with reviewing the quality and completeness of extracted company information.
-
-Compare the extracted information with the required schema:
-
-<Schema>
-{schema}
-</Schema>
-
-Here is the extracted information:
-<extracted_info>
-{info}
-</extracted_info>
-
-Analyze if all required fields are present and sufficiently populated. Consider:
-1. Are any required fields missing?
-2. Are any fields incomplete or containing uncertain information?
-3. Are there fields with placeholder values or "unknown" markers?
+## Final Tips
+• [Usage/buying tip 1]
+• [Usage/buying tip 2]
+• [Usage/buying tip 3]
 """

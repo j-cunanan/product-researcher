@@ -15,6 +15,9 @@ class Configuration:
     include_search_results: bool = (
         False  # Whether to include search results in the output
     )
+    comparison_table: bool = True  # Whether to include comparison table in output
+    detailed_analysis: bool = True  # Whether to include detailed analysis in output
+    final_recommendation: bool = True  # Whether to include final recommendation in output
 
     @classmethod
     def from_runnable_config(
