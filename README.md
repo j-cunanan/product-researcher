@@ -1,6 +1,6 @@
-# Company Researcher Agent
+# Product Researcher Agent
 
-Company Researcher Agent searches the web for information about a user-supplied company and returns it in a structured format defined by user-supplied JSON schema.
+Product Researcher Agent searches the web for information about user-supplied products and returns structured analysis, comparisons, and recommendations.
 
 ## 🚀 Quickstart with LangGraph server
 
@@ -12,233 +12,72 @@ cp .env.example .env
 Clone the repository and launch the assistant [using the LangGraph server](https://langchain-ai.github.io/langgraph/cloud/reference/cli/#dev):
 ```bash
 curl -LsSf https://astral.sh/uv/install.sh | sh
-git clone https://github.com/langchain-ai/company-researcher.git
-cd company-researcher
+git clone https://github.com/j-cunanan/product-researcher.git
+cd product-researcher
 uvx --refresh --from "langgraph-cli[inmem]" --with-editable . --python 3.11 langgraph dev
 ```
 
-![company_people_researcher](https://github.com/user-attachments/assets/f651d18c-8cf8-4dde-87cb-3daed59c7fa0)
-
 ## How it works
 
-Company Researcher Agent follows a multi-step research and extraction workflow that separates web research from schema extraction, allowing for better resource management and comprehensive data collection:
+Product Researcher Agent follows a multi-step research and analysis workflow:
 
-   - **Research Phase**: The system performs intelligent web research on the input company:
-     - Uses an LLM to generate targeted search queries based on the schema requirements (up to `max_search_queries`)
-     - Executes concurrent web searches via [Tavily API](https://tavily.com/), retrieving up to `max_search_results` results per query
-     - Takes structured research notes focused on schema-relevant information
-   - **Extraction Phase**: After research is complete, the system:
-     - Consolidates all research notes
-     - Uses an LLM to extract and format the information according to the user-defined schema
-     - Returns the structured data in the exact format requested
-   - **Reflection Phase**: The system evaluates the quality of extracted information:
-     - Analyzes completeness of required fields
-     - Identifies any missing or incomplete information
-     - Generates targeted follow-up search queries if needed
-     - Continues research until information is satisfactory or max reflection steps reached
+   - **Research Phase**: The system performs comprehensive product research:
+     - Executes concurrent web searches via [Tavily API](https://tavily.com/) for:
+       1. Product specifications and features
+       2. User reviews and feedback
+       3. Expert opinions and professional reviews
+     - Retrieves up to `max_search_results` results per search type
+   - **Analysis Phase**: After research is complete, the system:
+     - Generates a structured comparison table of top products
+     - Provides detailed analysis of top options
+     - Creates final recommendations and buying advice
+   - **Output Phase**: The system delivers three main components:
+     - Comparison table with key features, pros, and cons
+     - Detailed analysis of top options with market overview
+     - Final recommendations including top pick, premium, and budget options
 
 ## Configuration
 
-The configuration for Company Researcher Agent is defined in the `src/agent/configuration.py` file: 
-* `max_search_queries`: int = 3 # Max search queries per company
+The configuration for Product Researcher Agent is defined in the `src/agent/configuration.py` file: 
+* `max_search_queries`: int = 3 # Max search queries per product
 * `max_search_results`: int = 3 # Max search results per query
-* `max_reflection_steps`: int = 1 # Max reflection steps
+* `comparison_table`: bool = True # Whether to include comparison table
+* `detailed_analysis`: bool = True # Whether to include detailed analysis
+* `final_recommendation`: bool = True # Whether to include final recommendation
 
 ## Inputs 
 
 The user inputs are: 
 
 ```
-* company: str - A company to research
-* extraction_schema: Optional[dict] - A JSON schema for the output
-* user_notes: Optional[str] - Any additional notes about the company from the user
+* query: str - Product search query
+* category: str - Product category (e.g., electronics, outdoors)
+* price_range: Optional[str] - Desired price range (defaults to "Any")
 ```
 
-If a schema is not provided, the system will use a default schema (`DEFAULT_EXTRACTION_SCHEMA`) defined in `src/agent/state.py`.
+## Output Format
 
-### Schemas  
+The system provides structured output in three main sections:
 
-> ⚠️ **WARNING:** JSON schemas require `title` and `description` fields for [extraction](https://python.langchain.com/docs/how_to/structured_output/#typeddict-or-json-schema).
-> ⚠️ **WARNING:** Avoid JSON objects with nesting; LLMs have challenges performing structured extraction from nested objects. See examples below that we have tested. 
+1. **Comparison Table**: A markdown-formatted table comparing 3-5 top products, including:
+   - Model name
+   - Price
+   - Rating
+   - Key features
+   - Pros and cons
 
-Here is an example schema that can be supplied to research a company:  
+2. **Detailed Analysis**:
+   - Market overview and trends
+   - Analysis of top options
+   - Key decision factors
+   - Price-performance analysis
 
-* See the trace [here](https://smith.langchain.com/public/9f51fb8b-9486-4cd2-90ed-895f7932304e/r).
-
-    <details>
-    <summary>Example schema</summary>
-
-    ```
-    {
-        "title": "CompanyInfo",
-        "description": "Basic information about a company",
-        "type": "object",
-        "properties": {
-            "company_name": {
-                "type": "string",
-                "description": "Official name of the company"
-            },
-            "founding_year": {
-                "type": "integer",
-                "description": "Year the company was founded"
-            },
-            "founder_names": {
-                "type": "array",
-                "items": {"type": "string"},
-                "description": "Names of the founding team members"
-            },
-            "product_description": {
-                "type": "string",
-                "description": "Brief description of the company's main product or service"
-            },
-            "funding_summary": {
-                "type": "string",
-                "description": "Summary of the company's funding history"
-            }
-        },
-        "required": ["company_name"]
-    }
-    ```
-    </details>
-
-Here is an example of a more complex schema: 
-
-* See the reflections steps in the trace [here](https://smith.langchain.com/public/36f0d917-4edd-4d55-8dbf-6d6ec8a25754/r).
-
-    <details>
-    <summary>Example complex schema</summary>
-
-    ```
-    HARD_EXTRACTION_SCHEMA = {
-        "title": "CompanyInfo",
-        "description": "Comprehensive information about a company with confidence tracking",
-        "type": "object",
-        "properties": {
-            "company_name": {
-                "type": "string",
-                "description": "Official name of the company"
-            },
-            "verified_company": {
-                "type": "boolean",
-                "description": "Confirmation this is the intended company, not a similarly named one"
-            },
-            "similar_companies": {
-                "type": "array",
-                "items": {"type": "string"},
-                "description": "List of similarly named companies that could be confused with the target"
-            },
-            "distinguishing_features": {
-                "type": "string",
-                "description": "Key features that distinguish this company from similarly named ones"
-            },
-            "key_executives": {
-                "type": "array",
-                "items": {
-                    "type": "object",
-                    "properties": {
-                        "name": {"type": "string"},
-                        "title": {"type": "string"},
-                        "verification_date": {"type": "string"},
-                        "confidence_level": {
-                            "type": "string",
-                            "enum": ["high", "medium", "low", "uncertain"]
-                        },
-                        "source": {"type": "string"}
-                    }
-                }
-            },
-            "org_chart_summary": {
-                "type": "string",
-                "description": "Brief description of organizational structure"
-            },
-            "leadership_caveats": {
-                "type": "string",
-                "description": "Any uncertainties or caveats about leadership information"
-            },
-            "main_products": {
-                "type": "array",
-                "items": {
-                    "type": "object",
-                    "properties": {
-                        "name": {"type": "string"},
-                        "description": {"type": "string"},
-                        "launch_date": {"type": "string"},
-                        "current_status": {"type": "string"}
-                    }
-                }
-            },
-            "services": {
-                "type": "array",
-                "items": {
-                    "type": "object",
-                    "properties": {
-                        "name": {"type": "string"},
-                        "description": {"type": "string"},
-                        "target_market": {"type": "string"}
-                    }
-                }
-            },
-            "recent_developments": {
-                "type": "array",
-                "items": {
-                    "type": "object",
-                    "properties": {
-                        "date": {"type": "string"},
-                        "title": {"type": "string"},
-                        "summary": {"type": "string"},
-                        "source_url": {"type": "string"},
-                        "significance": {"type": "string"}
-                    }
-                },
-                "description": "Major news and developments from the last 6 months"
-            },
-            "historical_challenges": {
-                "type": "array",
-                "items": {
-                    "type": "object",
-                    "properties": {
-                        "issue_type": {"type": "string"},
-                        "description": {"type": "string"},
-                        "date_period": {"type": "string"},
-                        "resolution": {"type": "string"},
-                        "current_status": {"type": "string"}
-                    }
-                },
-                "description": "Past challenges, issues, or controversies"
-            },
-            "sources": {
-                "type": "array",
-                "items": {
-                    "type": "object",
-                    "properties": {
-                        "url": {"type": "string"},
-                        "title": {"type": "string"},
-                        "date_accessed": {"type": "string"},
-                        "information_type": {
-                            "type": "array",
-                            "items": {"type": "string"},
-                            "description": "Types of information sourced from this link (e.g., leadership, products, news)"
-                        }
-                    }
-                }
-            },
-            "company_summary": {
-                "type": "string",
-                "description": "Concise, dense summary of the most important company information (max 250 words)"
-            }
-        },
-        "required": [
-            "company_name",
-            "verified_company",
-            "company_summary",
-            "key_executives",
-            "main_products",
-            "sources"
-        ]
-    }
-    ```
-    </details>
-
+3. **Final Recommendations**:
+   - Top recommendation with justification
+   - Premium option
+   - Budget option
+   - Specialized recommendations
+   - Usage/buying tips
 
 ## Evaluation
 
